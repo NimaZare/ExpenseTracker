@@ -1,6 +1,7 @@
 import sv_ttk
 import tkinter as tk
 import matplotlib.pyplot as plt
+
 from tkinter import ttk
 from datetime import datetime
 from matplotlib.gridspec import GridSpec
@@ -16,6 +17,7 @@ from tools.theme_tools import ThemeManager
 class ExpenseTrackerApp:
     def __init__(self, master):
         self.master = master
+        self.is_initialized = False
 
         window_width = 1100
         window_height = 700
@@ -99,6 +101,7 @@ class ExpenseTrackerApp:
         self._create_right_panel()
 
         self.load_page("dashboard")
+        self.is_initialized = True
 
     def _set_active_button(self, active_page):
         for page, btn in self.nav_widgets.items():
@@ -241,8 +244,8 @@ class ExpenseTrackerApp:
             ThemeManager(self.master).apply_theme()
             self.theme_check.config(text="🌙 Dark Mode")
         
-        if self.master.title().startswith("Expense Tracker"):
-             self.load_page("dashboard")
+        if self.is_initialized and self.master.title().startswith("Expense Tracker"):
+            self.load_page("dashboard")
 
     def _create_metric_card(self, parent, column, title, value, color_tag):
         card = ttk.Frame(parent, style='Card.TFrame', padding="15")
