@@ -1,0 +1,65 @@
+import tkinter as tk
+from tkinter import ttk
+
+
+class AddTransactionPage:
+    def __init__(self, parent_frame):
+        self.parent_frame = parent_frame
+        
+        for widget in self.parent_frame.winfo_children():
+            widget.destroy()
+
+        self.main_frame = ttk.Frame(parent_frame, padding="30")
+        self.main_frame.pack(fill='both', expand=True)
+        self.main_frame.columnconfigure(0, weight=1)
+        self.main_frame.columnconfigure(1, weight=1)
+        
+        ttk.Label(self.main_frame, text="Add New Transaction", style='H2.TLabel').grid(row=0, column=0, columnspan=2, sticky='w', pady=(0, 25))
+
+        type_frame = ttk.Frame(self.main_frame)
+        type_frame.grid(row=1, column=0, columnspan=2, sticky='ew', pady=(0, 20))
+        
+        self.transaction_type = tk.StringVar(value="Expense")
+        
+        ttk.Label(type_frame, text="Type:", style='H5.TLabel').pack(side='left', padx=(0, 10))
+        
+        ttk.Radiobutton(type_frame, text="Expense", value="Expense", variable=self.transaction_type, style='Accent.TRadiobutton').pack(side='left', padx=5)
+        ttk.Radiobutton(type_frame, text="Income", value="Income", variable=self.transaction_type, style='Accent.TRadiobutton').pack(side='left', padx=5)
+        ttk.Radiobutton(type_frame, text="Transfer", value="Transfer", variable=self.transaction_type, style='Accent.TRadiobutton').pack(side='left', padx=5)
+
+
+        self._create_input_field(self.main_frame, "Amount ($)", ttk.Entry, row=2, column=0, large=True)
+        self._create_input_field(self.main_frame, "Date", ttk.Entry, row=2, column=1, default_text="YYYY-MM-DD")
+
+        categories = ["Groceries", "Rent", "Salary", "Utilities", "Travel"]
+        self._create_dropdown_field(self.main_frame, "Category", categories, row=4, column=0)
+        
+        accounts = ["Checking", "Savings", "Cash", "Credit Card"]
+        self._create_dropdown_field(self.main_frame, "Account", accounts, row=4, column=1)
+        
+        ttk.Label(self.main_frame, text="Description / Note", style='H5.TLabel').grid(row=6, column=0, sticky='w', pady=(15, 5))
+        ttk.Entry(self.main_frame).grid(row=7, column=0, columnspan=2, sticky='ew', ipady=5)
+        
+        ttk.Button(self.main_frame, text="Save Transaction", style='Accent.TButton', command=self.save_transaction).grid(row=8, column=0, columnspan=2, sticky='ew', pady=(30, 10), ipady=10)
+
+
+    def _create_input_field(self, parent, label_text, widget_class, row, column, large=False, default_text=""):
+        padx = (0, 15) if column == 0 else (15, 0)
+        ttk.Label(parent, text=label_text, style='H5.TLabel').grid(row=row, column=column, sticky='w', pady=(15, 5), padx=padx)
+        entry = widget_class(parent)
+        entry.grid(row=row + 1, column=column, sticky='ew', ipady=(10 if large else 5), padx=padx)
+        if default_text:
+            entry.insert(0, default_text)
+        return entry
+
+    def _create_dropdown_field(self, parent, label_text, options, row, column):
+        padx = (0, 15) if column == 0 else (15, 0)
+        ttk.Label(parent, text=label_text, style='H5.TLabel').grid(row=row, column=column, sticky='w', pady=(15, 5), padx=padx)
+        combo = ttk.Combobox(parent, values=options, state="readonly")
+        combo.grid(row=row + 1, column=column, sticky='ew', ipady=5, padx=padx)
+        if options:
+            combo.set(options[0])
+        return combo
+
+    def save_transaction(self):
+        print(f"SAVED: Type={self.transaction_type.get()}")
