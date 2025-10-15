@@ -9,9 +9,10 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 from forms.reports import ReportsPage
 from forms.settings import SettingsPage
-from forms.categories import CategoriesPage
-from forms.add_transaction import AddTransactionPage
 from tools.theme_tools import ThemeManager
+from forms.categories import CategoriesPage
+from services.transaction import TransactionService
+from forms.add_transaction import AddTransactionPage
 
 
 class ExpenseTrackerApp:
@@ -19,6 +20,7 @@ class ExpenseTrackerApp:
         self.master = master
         self.is_initialized = False
         self.theme_manager = ThemeManager(master)
+        self.transaction_service = TransactionService()
 
         window_width = 1100
         window_height = 700
@@ -37,15 +39,7 @@ class ExpenseTrackerApp:
 
         self.theme_manager.apply_theme()
         
-        # --- Mock Data for Chart ---
-        self.chart_data = {
-            'Groceries': 450,
-            'Bills & Rent': 300,
-            'Entertainment': 200,
-            'Transportation': 150,
-            'Other': 100
-        }
-        # ---------------------------
+        self.chart_data = {}
 
         self.pages = {
             "dashboard": self._load_dashboard,
@@ -129,6 +123,15 @@ class ExpenseTrackerApp:
                 page_class(self.center_frame)
 
     def _load_dashboard(self):
+        now = datetime.now()
+        
+        summary = self.transaction_service.get_dashboard_summary(now.month, now.year)
+        total_balance = summary['total_balance']
+        monthly_expenses = summary['monthly_expenses']
+        monthly_income = summary['monthly_income']
+        
+        self.chart_data = self.transaction_service.get_spending_breakdown(now.month, now.year)
+
         self.center_frame.grid_columnconfigure(0, weight=1)
         self.center_frame.grid_rowconfigure(2, weight=1)
 
@@ -136,15 +139,21 @@ class ExpenseTrackerApp:
         self.balance_card.grid(row=0, column=0, sticky="ew", pady=(0, 20))
 
         ttk.Label(self.balance_card, text="CURRENT BALANCE", style='H4.TLabel').pack(anchor='w')
-        ttk.Label(self.balance_card, text="$4,521.50", font=("Helvetica", 36, "bold"), foreground='#4CAF50').pack(anchor='w', pady=(5, 0))
+        
+        ttk.Label(
+            self.balance_card, 
+            text=f"${total_balance:,.2f}", 
+            font=("Helvetica", 36, "bold"), 
+            foreground=self._get_color('success' if total_balance >= 0 else 'error')
+        ).pack(anchor='w', pady=(5, 0))
         
         metrics_frame = ttk.Frame(self.center_frame)
         metrics_frame.grid(row=1, column=0, sticky="ew", pady=(0, 20))
         metrics_frame.grid_columnconfigure(0, weight=1)
         metrics_frame.grid_columnconfigure(1, weight=1)
 
-        self._create_metric_card(metrics_frame, 0, "MONTHLY EXPENSES", "$1,250.00", "error")
-        self._create_metric_card(metrics_frame, 1, "MONTHLY INCOME", "$2,000.00", "success")
+        self._create_metric_card(metrics_frame, 0, "MONTHLY EXPENSES", f"${monthly_expenses:,.2f}", "error")
+        self._create_metric_card(metrics_frame, 1, "MONTHLY INCOME", f"${monthly_income:,.2f}", "success")
         
         chart_frame = ttk.Frame(self.center_frame, style='Card.TFrame', padding="20")
         chart_frame.grid(row=2, column=0, sticky="nsew")
@@ -160,6 +169,10 @@ class ExpenseTrackerApp:
         """
         categories = list(self.chart_data.keys())
         amounts = list(self.chart_data.values())
+
+        if not amounts:
+             ttk.Label(parent_frame, text="No expense data for this month.", style='H6.TLabel').pack(pady=50)
+             return
 
         fig = plt.Figure(figsize=(7, 4.5), dpi=100)
         gs = GridSpec(1, 2, figure=fig, width_ratios=[1, 2], wspace=0.1) 
@@ -209,21 +222,21 @@ class ExpenseTrackerApp:
 
         ttk.Label(self.right_frame, text="RECENT TRANSACTIONS", style='H4.TLabel').pack(anchor='w', pady=(0, 10))
 
-        self.tree = ttk.Treeview(self.right_frame, columns=('date', 'amount'), show='headings', height=10)
-        self.tree.heading('date', text='Description')
+        self.tree = ttk.Treeview(self.right_frame, columns=('description', 'amount'), show='headings', height=10)
+        self.tree.heading('description', text='Description')
         self.tree.heading('amount', text='Amount', anchor='e')
-        self.tree.column('date', width=180, stretch=tk.YES)
+        self.tree.column('description', width=180, stretch=tk.YES)
         self.tree.column('amount', width=80, stretch=tk.NO, anchor='e')
         
-        transactions = [
-            ("Groceries", "2024-10-10", 85.20, 'error'),
-            ("Salary", "2024-10-05", 1500.00, 'success'),
-            ("Rent", "2024-10-01", 1200.00, 'error'),
-            ("Books", "2024-09-28", 25.50, 'error'),
-            ("Transfer", "2024-09-25", 500.00, 'info'),
-        ]
+        recent_transactions = self.transaction_service.get_recent_transactions(limit=5)
         
-        for desc, date, amount, color_tag in transactions:
+        for t in recent_transactions:
+            desc = t.get('description', 'N/A')
+            amount = t['amount']
+            ttype = t['type']
+            
+            color_tag = 'success' if ttype == 'Income' else 'error'
+            
             self.tree.insert('', 'end', values=(desc, f"${amount:.2f}"), tags=(color_tag,))
 
         self.tree.tag_configure('error', foreground='#F44336')
