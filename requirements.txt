@@ -3,4 +3,3 @@ pillow
 pywinstyles
 sv_ttk
 python-dotenv
-aiosqlite

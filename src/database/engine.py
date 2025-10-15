@@ -1,8 +1,8 @@
 import os
-import aiosqlite
+import sqlite3
 from tools.utils import Utils
 from dotenv import load_dotenv
-from contextlib import asynccontextmanager
+from contextlib import contextmanager
 
 
 load_dotenv()
@@ -14,26 +14,27 @@ if not os.path.exists(db_directory):
     os.makedirs(db_directory, exist_ok=True)
 
 
-@asynccontextmanager
-async def get_db_connection(timeout: float = 30.0):
+@contextmanager
+def get_db_connection(timeout: float = 30.0):
     """
-    Get an asynchronous database connection using async context manager.
+    Get a synchronous database connection using a standard context manager.
     """
-    conn = await aiosqlite.connect(DB_URL, timeout=timeout)
+    conn = sqlite3.connect(DB_URL, timeout=timeout) 
     try:
-        await conn.execute("PRAGMA journal_mode = WAL")
-        await conn.execute("PRAGMA synchronous = NORMAL")
-        await conn.execute("PRAGMA foreign_keys = ON")
-        conn.row_factory = aiosqlite.Row
+        conn.execute("PRAGMA journal_mode = WAL") 
+        conn.execute("PRAGMA synchronous = NORMAL")
+        conn.execute("PRAGMA foreign_keys = ON")
+        
+        conn.row_factory = sqlite3.Row 
         yield conn
     finally:
-        await conn.close()
+        conn.close() 
 
 
-async def setup_database():
+def setup_database():
     """Create tables and set WAL mode."""
-    async with get_db_connection() as db:
-        await db.executescript('''
+    with get_db_connection() as db:
+        db.executescript('''
         CREATE TABLE IF NOT EXISTS schema_version (
             version INTEGER PRIMARY KEY
         );
@@ -62,3 +63,6 @@ async def setup_database():
             updated_at TEXT NOT NULL
         );
         ''')
+        
+        db.commit()
+

@@ -1,19 +1,18 @@
-import asyncio
-import aiosqlite
+import sqlite3
 from database.engine import get_db_connection, setup_database
 
 
-async def migration_1():
+def migration_1():
     """Create initial tables."""
     print("==> Running migration 1: Creating initial tables...")
-    await setup_database()
+    setup_database()
 
 
-async def migration_2():
+def migration_2():
     """Add indexes to tables."""
     print("==> Running migration 2: Adding indexes...")
-    async with get_db_connection() as db:
-        await db.executescript('''
+    with get_db_connection() as db:
+        db.executescript('''
         CREATE INDEX IF NOT EXISTS idx_category_name ON categories(name);
         CREATE INDEX IF NOT EXISTS idx_category_type ON categories(type);
         CREATE INDEX IF NOT EXISTS idx_transaction_date ON transactions(date);
@@ -22,6 +21,8 @@ async def migration_2():
         CREATE INDEX IF NOT EXISTS idx_transaction_account ON transactions(account);
         CREATE INDEX IF NOT EXISTS idx_preferences_item ON preferences(item);
         ''')
+        
+        db.commit() 
 
 
 MIGRATIONS = [
@@ -30,42 +31,43 @@ MIGRATIONS = [
     # Add more migration functions here as needed
 ]
 
-async def get_current_version() -> int:
+def get_current_version() -> int:
     """Get the current schema version from the database, safely handling non-existent tables."""
     try:
-        async with get_db_connection() as conn:
-            async with conn.execute("SELECT version FROM schema_version") as cursor:
-                row = await cursor.fetchone()
-                return row['version'] if row else 0
-    except aiosqlite.OperationalError:
+        with get_db_connection() as conn:
+            cursor = conn.execute("SELECT version FROM schema_version")
+            row = cursor.fetchone() 
+            return row['version'] if row else 0
+    except sqlite3.OperationalError: 
         print("==> schema_version table not found, assuming initial run.")
         return 0
 
-async def migrate():
+def migrate():
     """Apply all pending migrations."""
-    current_version = await get_current_version()
+    current_version = get_current_version() 
     
     if current_version == 0:
         print("==> Initializing database...")
-        await migration_1()
+        migration_1()
         current_version = 1
-        async with get_db_connection() as conn:
-            await conn.execute("INSERT INTO schema_version (version) VALUES (?)", (current_version,))
-            await conn.commit()
+        with get_db_connection() as conn:
+            conn.execute("INSERT INTO schema_version (version) VALUES (?)", (current_version,))
+            conn.commit() 
     
     for i in range(current_version, len(MIGRATIONS)):
         migration_func = MIGRATIONS[i]
         migration_version = i + 1
         
         print(f"==> Applying migration {migration_version}...")
-        await migration_func()
+        migration_func() 
         
-        async with get_db_connection() as conn:
-            await conn.execute("UPDATE schema_version SET version = ?", (migration_version,))
-            await conn.commit()
+        with get_db_connection() as conn:
+            conn.execute("UPDATE schema_version SET version = ?", (migration_version,))
+            conn.commit()
 
-    print("==> Migrations completed successfully. <==")
+    print("==========> Migrations completed successfully <===========")
 
 
 if __name__ == "__main__":
-    asyncio.run(migrate())
+    migrate()
+
