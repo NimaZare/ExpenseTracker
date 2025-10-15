@@ -18,6 +18,7 @@ class ExpenseTrackerApp:
     def __init__(self, master):
         self.master = master
         self.is_initialized = False
+        self.theme_manager = ThemeManager(master)
 
         window_width = 1100
         window_height = 700
@@ -34,7 +35,7 @@ class ExpenseTrackerApp:
         master.grid_columnconfigure(2, weight=0, minsize=300)
         master.grid_rowconfigure(0, weight=1)
 
-        ThemeManager(self.master).apply_theme()
+        self.theme_manager.apply_theme()
         
         # --- Mock Data for Chart ---
         self.chart_data = {
@@ -235,13 +236,13 @@ class ExpenseTrackerApp:
         current_theme = sv_ttk.get_theme()
         if current_theme == "dark":
             sv_ttk.set_theme("light")
-            ThemeManager(self.master).save_theme_preference("light")
-            ThemeManager(self.master).apply_theme()
+            self.theme_manager.save_theme_preference("light")
+            self.theme_manager.apply_theme()
             self.theme_check.config(text="☀ Light Mode")
         else:
             sv_ttk.set_theme("dark")
-            ThemeManager(self.master).save_theme_preference("dark")
-            ThemeManager(self.master).apply_theme()
+            self.theme_manager.save_theme_preference("dark")
+            self.theme_manager.apply_theme()
             self.theme_check.config(text="🌙 Dark Mode")
         
         if self.is_initialized and self.master.title().startswith("Expense Tracker"):

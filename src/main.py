@@ -1,10 +1,13 @@
 import tkinter as tk
 from datetime import datetime
 from tools.utils import Utils
+from database.migrations import migrate
 from forms.dashboard import ExpenseTrackerApp 
 
 
 def main():
+    migrate()
+
     root = tk.Tk()
     root.withdraw()
 
