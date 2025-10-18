@@ -1,4 +1,5 @@
 import tkinter as tk
+from tools.utils import Utils
 from tkinter import ttk, messagebox
 from services.category import CategoryService
 
@@ -105,8 +106,15 @@ class CategoriesPage:
         
         try:
             categories = self.category_service.get_all()
-            categories.extend(self.category_service.get_default_categories())
+            categories.extend(Utils.get_default_categories())
             for cat in categories:
+                if isinstance(cat, str):
+                    cat = {
+                        'id': None,
+                        'name': cat,
+                        'type': 'Default',
+                        'budget': None
+                    }
                 budget = f"${cat.get('budget', 0)}" if cat.get('budget') else "N/A"
                 self.cat_tree.insert('', 'end', values=(
                     cat['id'],
@@ -136,6 +144,11 @@ class CategoriesPage:
     def save_category(self):
         """Save or update category"""
         name = self.name_entry.get().strip()
+        dfc = Utils.get_default_categories()
+        if name in dfc:
+            messagebox.showwarning("Warning", f"Category name '{name}' is reserved as a default category")
+            return
+
         cat_type = self.type_combo.get()
         budget_str = self.budget_entry.get().strip()
         description = self.description_entry.get().strip()
@@ -204,6 +217,11 @@ class CategoriesPage:
         
         item = self.cat_tree.item(selection[0])
         values = item['values']
+
+        dfc = Utils.get_default_categories()
+        if values[1] in dfc:
+            messagebox.showwarning("Warning", "Default categories cannot be edited")
+            return
         
         try:
             category = self.category_service.get_by_id(values[0])
@@ -239,7 +257,7 @@ class CategoriesPage:
         values = item['values']
         category_name = values[1]
 
-        if category_name in self.category_service.get_default_categories():
+        if category_name in ["Groceries", "Rent", "Salary", "Utilities", "Travel"]:
             messagebox.showwarning("Warning", "Default categories cannot be deleted")
             return
         

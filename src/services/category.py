@@ -12,11 +12,6 @@ class CategoryService(BaseService):
         return self._fetch_one(query, (name,))
     
     def get_by_type(self, cat_type: str) -> List[Dict]:
-        """Fetches all categories of a specific type (Expense or Income)."""
+        """Fetches all categories of a specific type (Expense,  or Income)."""
         query = "SELECT * FROM categories WHERE type = ? AND is_active = 1 ORDER BY name"
         return self._execute(query, (cat_type,))
-
-    def get_default_categories(self) -> List:
-        """Fetches all default categories."""
-        default_catg = ["Groceries", "Rent", "Salary", "Utilities", "Travel"]
-        return default_catg

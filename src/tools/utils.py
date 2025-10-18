@@ -1,7 +1,12 @@
 import os
 import sys
 import tkinter as tk
+from typing import List
 from PIL import Image, ImageTk
+from dotenv import load_dotenv
+
+
+load_dotenv()
 
 
 class Utils:
@@ -39,3 +44,9 @@ class Utils:
             print("Error: Pillow library (PIL) not found. Cannot load PNG icon.")
         except Exception as e:
             print(f"Icon not loaded due to error: {e}")
+
+    @staticmethod
+    def get_default_categories() -> List[str]:
+        """Fetches all default categories."""
+        categories = os.getenv("DEFAULT_CATEGORIES", "").split(",")
+        return [category.strip() for category in categories if category.strip()]
