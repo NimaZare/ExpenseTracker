@@ -44,9 +44,11 @@ def setup_database():
         );
         CREATE TABLE IF NOT EXISTS categories (
             id TEXT PRIMARY KEY,
-            name TEXT UNIQUE NOT NULL,
-            type TEXT NOT NULL,
-            is_active INTEGER NOT NULL,
+            name TEXT NOT NULL UNIQUE,
+            type TEXT NOT NULL CHECK(type IN ('Expense', 'Income', 'Transfer')),
+            budget REAL,
+            description TEXT,
+            is_active INTEGER DEFAULT 1,
             created_at TEXT NOT NULL,
             updated_at TEXT NOT NULL
         );

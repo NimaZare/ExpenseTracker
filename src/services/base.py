@@ -44,7 +44,7 @@ class BaseService:
                 conn.execute(query, list(kwargs.values()))
                 conn.commit()
                 return self.get_by_id(record_id)
-            except sqlite3.IntegrityError: 
+            except sqlite3.IntegrityError:
                 return None
 
     def get_by_id(self, record_id: str) -> Optional[Dict]:
@@ -73,9 +73,8 @@ class BaseService:
 
     def delete(self, record_id: str) -> bool:
         """Deletes a record (soft-delete)."""
-        query = f"UPDATE {self.table_name} SET is_active = 0 WHERE id = ?"
+        query = f"DELETE FROM {self.table_name} WHERE id = ?"
         with get_db_connection() as conn:
             cursor = conn.execute(query, (record_id,))
             conn.commit()
             return cursor.rowcount > 0
-        
