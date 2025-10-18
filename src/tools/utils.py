@@ -58,7 +58,7 @@ class Utils:
         default_settings = {
             "currency": "$",
             "date_format": "YYYY-MM-DD",
-            "theme": "Dark",
+            "theme": "dark",
             "default_account": "Checking",
             "show_decimals": True,
             "auto_backup": False

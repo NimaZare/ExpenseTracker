@@ -66,7 +66,7 @@ class SettingsPage:
         default_settings = {
             "currency": "$",
             "date_format": "YYYY-MM-DD",
-            "theme": "Dark",
+            "theme": "dark",
             "default_account": "Checking",
             "show_decimals": True,
             "auto_backup": False
@@ -127,9 +127,9 @@ class SettingsPage:
         ttk.Label(section, text="Theme:", style='H5.TLabel').grid(
             row=3, column=0, sticky='w', pady=(5, 5))
         
-        self.theme_var = tk.StringVar(value=self.settings.get("theme", "Dark"))
+        self.theme_var = tk.StringVar(value=self.settings.get("theme", "dark"))
         theme_combo = ttk.Combobox(section, textvariable=self.theme_var,
-                                   values=["Light", "Dark"], 
+                                   values=["light", "dark"],
                                    state="readonly", width=15)
         theme_combo.grid(row=3, column=1, sticky='w', pady=(5, 5))
         theme_combo.bind('<<ComboboxSelected>>', lambda e: self.update_setting("theme", self.theme_var.get()))
