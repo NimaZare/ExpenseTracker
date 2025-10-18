@@ -52,13 +52,13 @@ def setup_database():
         );
         CREATE TABLE IF NOT EXISTS transactions (
             id TEXT PRIMARY KEY,
-            type TEXT NOT NULL,
-            amount REAL NOT NULL,
+            type TEXT NOT NULL CHECK(type IN ('Expense', 'Income', 'Transfer')),
+            amount REAL NOT NULL CHECK(amount > 0),
             date TEXT NOT NULL,
             category TEXT,
             account TEXT NOT NULL,
             description TEXT,
-            is_active INTEGER NOT NULL,
+            is_active INTEGER DEFAULT 1,
             created_at TEXT NOT NULL,
             updated_at TEXT NOT NULL
         );

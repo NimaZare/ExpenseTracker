@@ -1,10 +1,12 @@
 import tkinter as tk
-from tkinter import ttk
+from tkinter import ttk, messagebox
+from services.transaction import TransactionService
 
 
 class AddTransactionPage:
     def __init__(self, parent_frame):
         self.parent_frame = parent_frame
+        self.trs = TransactionService()
         
         for widget in self.parent_frame.winfo_children():
             widget.destroy()
@@ -27,18 +29,18 @@ class AddTransactionPage:
         ttk.Radiobutton(type_frame, text="Income", value="Income", variable=self.transaction_type, style='Accent.TRadiobutton').pack(side='left', padx=5)
         ttk.Radiobutton(type_frame, text="Transfer", value="Transfer", variable=self.transaction_type, style='Accent.TRadiobutton').pack(side='left', padx=5)
 
-
-        self._create_input_field(self.main_frame, "Amount ($)", ttk.Entry, row=2, column=0, large=True)
-        self._create_input_field(self.main_frame, "Date", ttk.Entry, row=2, column=1, default_text="YYYY-MM-DD")
+        self.amount_entry = self._create_input_field(self.main_frame, "Amount ($)", ttk.Entry, row=2, column=0, large=True)
+        self.date_entry = self._create_input_field(self.main_frame, "Date", ttk.Entry, row=2, column=1, default_text="YYYY-MM-DD")
 
         categories = ["Groceries", "Rent", "Salary", "Utilities", "Travel"]
-        self._create_dropdown_field(self.main_frame, "Category", categories, row=4, column=0)
+        self.category_combo = self._create_dropdown_field(self.main_frame, "Category", categories, row=4, column=0)
         
         accounts = ["Checking", "Savings", "Cash", "Credit Card"]
-        self._create_dropdown_field(self.main_frame, "Account", accounts, row=4, column=1)
+        self.account_combo = self._create_dropdown_field(self.main_frame, "Account", accounts, row=4, column=1)
         
         ttk.Label(self.main_frame, text="Description / Note", style='H5.TLabel').grid(row=6, column=0, sticky='w', pady=(15, 5))
-        ttk.Entry(self.main_frame).grid(row=7, column=0, columnspan=2, sticky='ew', ipady=5)
+        self.description_entry = ttk.Entry(self.main_frame)
+        self.description_entry.grid(row=7, column=0, columnspan=2, sticky='ew', ipady=5)
         
         ttk.Button(self.main_frame, text="Save Transaction", style='Accent.TButton', command=self.save_transaction).grid(row=8, column=0, columnspan=2, sticky='ew', pady=(30, 10), ipady=10)
 
@@ -62,4 +64,51 @@ class AddTransactionPage:
         return combo
 
     def save_transaction(self):
-        print(f"SAVED: Type={self.transaction_type.get()}")
+        amount = self.amount_entry.get().strip()
+        date = self.date_entry.get().strip()
+        
+        if not amount:
+            messagebox.showerror("Error", "Please enter an amount")
+            return
+        
+        try:
+            amount_value = float(amount)
+            if amount_value <= 0:
+                messagebox.showerror("Error", "Amount must be greater than 0")
+                return
+        except ValueError:
+            messagebox.showerror("Error", "Please enter a valid number for amount")
+            return
+        
+        if date == "YYYY-MM-DD" or not date:
+            messagebox.showerror("Error", "Please enter a valid date")
+            return
+        
+        data = {
+            "type": self.transaction_type.get(),
+            "amount": amount_value,
+            "date": date,
+            "category": self.category_combo.get(),
+            "account": self.account_combo.get(),
+            "description": self.description_entry.get().strip()
+        }
+        
+        try:
+            result = self.trs.add_transaction(data)
+            if result:
+                messagebox.showinfo("Success", "Transaction saved successfully!")
+                self.clear_form()
+            else:
+                messagebox.showerror("Error", "Failed to save transaction")
+        except Exception as e:
+            messagebox.showerror("Error", f"An error occurred: {str(e)}")
+    
+    def clear_form(self):
+        """Clear all form fields after successful save"""
+        self.amount_entry.delete(0, tk.END)
+        self.date_entry.delete(0, tk.END)
+        self.date_entry.insert(0, "YYYY-MM-DD")
+        self.description_entry.delete(0, tk.END)
+        self.transaction_type.set("Expense")
+        self.category_combo.current(0)
+        self.account_combo.current(0)
