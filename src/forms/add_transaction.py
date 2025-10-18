@@ -1,12 +1,14 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
 from services.transaction import TransactionService
+from services.category import CategoryService
 
 
 class AddTransactionPage:
     def __init__(self, parent_frame):
         self.parent_frame = parent_frame
         self.trs = TransactionService()
+        self.category_service = CategoryService()
         
         for widget in self.parent_frame.winfo_children():
             widget.destroy()
@@ -32,7 +34,9 @@ class AddTransactionPage:
         self.amount_entry = self._create_input_field(self.main_frame, "Amount ($)", ttk.Entry, row=2, column=0, large=True)
         self.date_entry = self._create_input_field(self.main_frame, "Date", ttk.Entry, row=2, column=1, default_text="YYYY-MM-DD")
 
-        categories = ["Groceries", "Rent", "Salary", "Utilities", "Travel"]
+        categories_db = self.category_service.get_all()
+        categories = [cat['name'] for cat in categories_db]
+        categories.extend(["Groceries", "Rent", "Salary", "Utilities", "Travel"])
         self.category_combo = self._create_dropdown_field(self.main_frame, "Category", categories, row=4, column=0)
         
         accounts = ["Checking", "Savings", "Cash", "Credit Card"]

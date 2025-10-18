@@ -1,6 +1,5 @@
 from services.base import BaseService
-from database.engine import get_db_connection
-from typing import Dict, Optional, Generator, List
+from typing import Dict, Optional, List
 
 
 class CategoryService(BaseService):
@@ -16,14 +15,3 @@ class CategoryService(BaseService):
         """Fetches all categories of a specific type (Expense or Income)."""
         query = "SELECT * FROM categories WHERE type = ? AND is_active = 1 ORDER BY name"
         return self._execute(query, (cat_type,))
-    
-    def stream_categories(self, batch_size: int = 500) -> Generator[Dict, None, None]:
-        """Stream categories from the database in batches."""
-        with get_db_connection() as db:
-            with db.execute('SELECT * FROM categories WHERE is_active = 1') as cursor:
-                while True:
-                    rows = cursor.fetchmany(batch_size)
-                    if not rows:
-                        break
-                    for row in rows:
-                        yield dict(row)
