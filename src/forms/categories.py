@@ -105,6 +105,7 @@ class CategoriesPage:
         
         try:
             categories = self.category_service.get_all()
+            categories.extend(self.category_service.get_default_categories())
             for cat in categories:
                 budget = f"${cat.get('budget', 0)}" if cat.get('budget') else "N/A"
                 self.cat_tree.insert('', 'end', values=(
@@ -237,6 +238,10 @@ class CategoriesPage:
         item = self.cat_tree.item(selection[0])
         values = item['values']
         category_name = values[1]
+
+        if category_name in self.category_service.get_default_categories():
+            messagebox.showwarning("Warning", "Default categories cannot be deleted")
+            return
         
         if not messagebox.askyesno("Confirm Delete", f"Are you sure you want to delete '{category_name}'?"):
             return

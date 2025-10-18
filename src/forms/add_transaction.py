@@ -36,7 +36,7 @@ class AddTransactionPage:
 
         categories_db = self.category_service.get_all()
         categories = [cat['name'] for cat in categories_db]
-        categories.extend(["Groceries", "Rent", "Salary", "Utilities", "Travel"])
+        categories.extend(self.category_service.get_default_categories())
         self.category_combo = self._create_dropdown_field(self.main_frame, "Category", categories, row=4, column=0)
         
         accounts = ["Checking", "Savings", "Cash", "Credit Card"]
