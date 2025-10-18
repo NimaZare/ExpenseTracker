@@ -10,6 +10,7 @@ class AddTransactionPage:
         self.parent_frame = parent_frame
         self.trs = TransactionService()
         self.category_service = CategoryService()
+        self.settings = Utils.load_app_settings()
         
         for widget in self.parent_frame.winfo_children():
             widget.destroy()
@@ -32,8 +33,8 @@ class AddTransactionPage:
         ttk.Radiobutton(type_frame, text="Income", value="Income", variable=self.transaction_type, style='Accent.TRadiobutton').pack(side='left', padx=5)
         ttk.Radiobutton(type_frame, text="Transfer", value="Transfer", variable=self.transaction_type, style='Accent.TRadiobutton').pack(side='left', padx=5)
 
-        self.amount_entry = self._create_input_field(self.main_frame, "Amount ($)", ttk.Entry, row=2, column=0, large=True)
-        self.date_entry = self._create_input_field(self.main_frame, "Date", ttk.Entry, row=2, column=1, default_text="YYYY-MM-DD")
+        self.amount_entry = self._create_input_field(self.main_frame, f"Amount ({self.settings.get('currency', '$')})", ttk.Entry, row=2, column=0, large=True)
+        self.date_entry = self._create_input_field(self.main_frame, "Date", ttk.Entry, row=2, column=1, default_text=f"{self.settings.get('date_format', 'YYYY-MM-DD')}", large=True)
 
         categories_db = self.category_service.get_all()
         categories = [cat['name'] for cat in categories_db]
@@ -85,7 +86,7 @@ class AddTransactionPage:
             messagebox.showerror("Error", "Please enter a valid number for amount")
             return
         
-        if date == "YYYY-MM-DD" or not date:
+        if date == f"{self.settings.get('date_format', 'YYYY-MM-DD')}" or not date:
             messagebox.showerror("Error", "Please enter a valid date")
             return
         
@@ -112,7 +113,7 @@ class AddTransactionPage:
         """Clear all form fields after successful save"""
         self.amount_entry.delete(0, tk.END)
         self.date_entry.delete(0, tk.END)
-        self.date_entry.insert(0, "YYYY-MM-DD")
+        self.date_entry.insert(0, f"{self.settings.get('date_format', 'YYYY-MM-DD')}")
         self.description_entry.delete(0, tk.END)
         self.transaction_type.set("Expense")
         self.category_combo.current(0)

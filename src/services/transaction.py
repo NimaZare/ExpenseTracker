@@ -133,3 +133,9 @@ class TransactionService(BaseService):
         query = f"SELECT SUM(amount) as total FROM {self.table_name} WHERE type = ? AND is_active = 1"
         result = self._fetch_one(query, (transaction_type,))
         return result['total'] if result and result['total'] else 0.0
+
+    def get_total_count(self) -> int:
+        """Get total count of active transactions"""
+        query = f"SELECT COUNT(*) as count FROM {self.table_name} WHERE is_active = 1"
+        result = self._fetch_one(query)
+        return result['count'] if result else 0

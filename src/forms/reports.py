@@ -7,6 +7,7 @@ from matplotlib.figure import Figure
 from datetime import datetime, timedelta
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
+from tools.utils import Utils
 from services.category import CategoryService
 from services.transaction import TransactionService
 
@@ -16,6 +17,7 @@ class ReportsPage:
         self.parent_frame = parent_frame
         self.category_service = CategoryService()
         self.transaction_service = TransactionService()
+        self.settings = Utils.load_app_settings()
         
         for widget in self.parent_frame.winfo_children():
             widget.destroy()
@@ -77,11 +79,11 @@ class ReportsPage:
         summary_frame.grid_columnconfigure(1, weight=1)
         summary_frame.grid_columnconfigure(2, weight=1)
 
-        self.income_card = self._create_summary_card(summary_frame, "Total Income", "$0.00", 0, 0)
-        
-        self.expense_card = self._create_summary_card(summary_frame, "Total Expenses", "$0.00", 0, 1)
-        
-        self.balance_card = self._create_summary_card(summary_frame, "Net Balance", "$0.00", 0, 2)
+        self.income_card = self._create_summary_card(summary_frame, "Total Income", f"{self.settings.get('currency', '$')}0.00", 0, 0)
+
+        self.expense_card = self._create_summary_card(summary_frame, "Total Expenses", f"{self.settings.get('currency', '$')}0.00", 0, 1)
+
+        self.balance_card = self._create_summary_card(summary_frame, "Net Balance", f"{self.settings.get('currency', '$')}0.00", 0, 2)
 
         chart_frame = ttk.Frame(self.report_content_frame, style='Card.TFrame', padding="15")
         chart_frame.grid(row=2, column=0, sticky='ew', pady=(0, 20))
@@ -213,10 +215,10 @@ class ReportsPage:
         total_income = sum(t['amount'] for t in transactions if t['type'] == 'Income')
         total_expense = sum(t['amount'] for t in transactions if t['type'] == 'Expense')
         net_balance = total_income - total_expense
-        
-        self.income_card.config(text=f"${total_income:,.2f}")
-        self.expense_card.config(text=f"${total_expense:,.2f}")
-        self.balance_card.config(text=f"${net_balance:,.2f}")
+
+        self.income_card.config(text=f"{self.settings.get('currency', '$')}{total_income:,.2f}")
+        self.expense_card.config(text=f"{self.settings.get('currency', '$')}{total_expense:,.2f}")
+        self.balance_card.config(text=f"{self.settings.get('currency', '$')}{net_balance:,.2f}")
 
     def update_chart(self, transactions):
         """Update the pie chart with expense breakdown"""
@@ -256,7 +258,7 @@ class ReportsPage:
         sorted_transactions = sorted(transactions, key=lambda x: x['date'], reverse=True)
         
         for trans in sorted_transactions:
-            amount_str = f"${trans['amount']:,.2f}"
+            amount_str = f"{self.settings.get('currency', '$')}{trans['amount']:,.2f}"
             if trans['type'] == 'Expense':
                 amount_str = f"-{amount_str}"
             

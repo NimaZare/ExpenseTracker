@@ -6,7 +6,7 @@ from contextlib import contextmanager
 
 
 load_dotenv()
-DATABASE_NAME = os.getenv("DATABASE_NAME", "expenses.db")
+DATABASE_NAME = os.getenv("DATABASE_NAME", "finance.db")
 DB_URL = Utils.resource_path(f"data/{DATABASE_NAME}")
 
 db_directory = os.path.dirname(DB_URL)

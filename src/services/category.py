@@ -15,3 +15,9 @@ class CategoryService(BaseService):
         """Fetches all categories of a specific type (Expense,  or Income)."""
         query = "SELECT * FROM categories WHERE type = ? AND is_active = 1 ORDER BY name"
         return self._execute(query, (cat_type,))
+
+    def get_total_count(self) -> int:
+        """Returns the total number of active categories."""
+        query = "SELECT COUNT(*) as count FROM categories WHERE is_active = 1"
+        result = self._fetch_one(query)
+        return result['count'] if result else 0

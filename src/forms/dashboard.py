@@ -7,6 +7,7 @@ from datetime import datetime
 from matplotlib.gridspec import GridSpec
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
+from tools.utils import Utils
 from forms.reports import ReportsPage
 from forms.settings import SettingsPage
 from tools.theme_tools import ThemeManager
@@ -15,12 +16,13 @@ from services.transaction import TransactionService
 from forms.add_transaction import AddTransactionPage
 
 
-class ExpenseTrackerApp:
+class DashboardPage:
     def __init__(self, master):
         self.master = master
         self.is_initialized = False
         self.theme_manager = ThemeManager(master)
         self.transaction_service = TransactionService()
+        self.settings = Utils.load_app_settings()
 
         window_width = 1100
         window_height = 700
@@ -73,14 +75,15 @@ class ExpenseTrackerApp:
             btn.pack(fill='x', ipady=10, pady=4)
             self.nav_widgets[page] = btn
 
+        app_theme = self.settings.get("theme", "dark")
         self.theme_check = ttk.Checkbutton(
             self.sidebar_frame,
-            text="🌙 Dark Mode" if sv_ttk.get_theme() == "dark" else "☀ Light Mode",
+            text="🌙 Dark Mode" if app_theme == "dark" else "☀ Light Mode",
             style="Switch.TCheckbutton",
             command=self.toggle_theme
         )
 
-        if sv_ttk.get_theme() == "dark":
+        if app_theme == "dark":
             self.theme_check.state(['selected'])
             self.theme_check.grid(row=2, column=0, sticky='ew', ipady=5, pady=(40, 0))
         else:
@@ -142,7 +145,7 @@ class ExpenseTrackerApp:
         
         ttk.Label(
             self.balance_card, 
-            text=f"${total_balance:,.2f}", 
+            text=f"{self.settings.get('currency', '$')}{total_balance:,.2f}", 
             font=("Helvetica", 36, "bold"), 
             foreground=self._get_color('success' if total_balance >= 0 else 'error')
         ).pack(anchor='w', pady=(5, 0))
@@ -152,9 +155,9 @@ class ExpenseTrackerApp:
         metrics_frame.grid_columnconfigure(0, weight=1)
         metrics_frame.grid_columnconfigure(1, weight=1)
 
-        self._create_metric_card(metrics_frame, 0, "MONTHLY EXPENSES", f"${monthly_expenses:,.2f}", "error")
-        self._create_metric_card(metrics_frame, 1, "MONTHLY INCOME", f"${monthly_income:,.2f}", "success")
-        
+        self._create_metric_card(metrics_frame, 0, "MONTHLY EXPENSES", f"{self.settings.get('currency', '$')}{monthly_expenses:,.2f}", "error")
+        self._create_metric_card(metrics_frame, 1, "MONTHLY INCOME", f"{self.settings.get('currency', '$')}{monthly_income:,.2f}", "success")
+
         chart_frame = ttk.Frame(self.center_frame, style='Card.TFrame', padding="20")
         chart_frame.grid(row=2, column=0, sticky="nsew")
         
@@ -236,8 +239,8 @@ class ExpenseTrackerApp:
             ttype = t['type']
             
             color_tag = 'success' if ttype == 'Income' else 'error'
-            
-            self.tree.insert('', 'end', values=(desc, f"${amount:.2f}"), tags=(color_tag,))
+
+            self.tree.insert('', 'end', values=(desc, f"{self.settings.get('currency', '$')}{amount:.2f}"), tags=(color_tag,))
 
         self.tree.tag_configure('error', foreground='#F44336')
         self.tree.tag_configure('success', foreground='#4CAF50')

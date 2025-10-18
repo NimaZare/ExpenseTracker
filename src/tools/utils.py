@@ -50,3 +50,28 @@ class Utils:
         """Fetches all default categories."""
         categories = os.getenv("DEFAULT_CATEGORIES", "").split(",")
         return [category.strip() for category in categories if category.strip()]
+
+    @staticmethod
+    def load_app_settings() -> dict:
+        """Load application settings from a JSON file."""
+        import json
+        default_settings = {
+            "currency": "$",
+            "date_format": "YYYY-MM-DD",
+            "theme": "Dark",
+            "default_account": "Checking",
+            "show_decimals": True,
+            "auto_backup": False
+        }
+
+        settings_path = Utils.resource_path("data/app_settings.json")
+        if not os.path.exists(settings_path):
+            return default_settings
+        
+        try:
+            with open(settings_path, 'r') as f:
+                settings = json.load(f)
+            return settings
+        except Exception as e:
+            print(f"Error loading app settings: {e}")
+            return default_settings
