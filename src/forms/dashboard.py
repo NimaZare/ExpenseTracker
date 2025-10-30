@@ -44,7 +44,7 @@ class DashboardPage:
         self.chart_data = {}
 
         self.pages = {
-            "dashboard": self._load_dashboard,
+            "dashboard": DashboardPage,
             "add": AddTransactionPage,
             "reports": ReportsPage,
             "categories": CategoriesPage,
@@ -146,10 +146,10 @@ class DashboardPage:
         
         ttk.Label(
             self.balance_card, 
-            text=f"{self.settings.get('currency', '$')}{total_balance:,.2f}", 
-            font=("Helvetica", 36, "bold"), 
+            text=f"{self.settings.get('currency', '$')}{total_balance:,.2f}",
+            font=("Helvetica", 30, "bold"),
             foreground=self._get_color('success' if total_balance >= 0 else 'error')
-        ).pack(anchor='w', pady=(5, 0))
+        ).pack(anchor='w', pady=(5, 10))
         
         metrics_frame = ttk.Frame(self.center_frame)
         metrics_frame.grid(row=1, column=0, sticky="ew", pady=(0, 20))

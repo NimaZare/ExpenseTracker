@@ -35,9 +35,13 @@ class SettingsPage:
         self.parent_frame.grid_columnconfigure(0, weight=1)
         self.parent_frame.grid_rowconfigure(0, weight=1)
 
-        canvas = tk.Canvas(parent_frame, highlightthickness=0)
-        scrollbar = ttk.Scrollbar(parent_frame, orient="vertical", command=canvas.yview)
-        self.main_frame = ttk.Frame(canvas, padding="30")
+        canvas = tk.Canvas(parent_frame, height=800, highlightthickness=0)
+        scrollbar = ttk.Scrollbar(parent_frame, orient="vertical", command=canvas.yview, takefocus=True)
+        self.main_frame = ttk.Frame(canvas, padding="10")
+        
+        canvas.bind_all("<MouseWheel>", lambda event: canvas.yview_scroll(int(-1*(event.delta/120)), "units"))
+        canvas.bind_all("<Button-4>", lambda event: canvas.yview_scroll(-1, "units"))
+        canvas.bind_all("<Button-5>", lambda event: canvas.yview_scroll(1, "units"))
         
         self.main_frame.bind(
             "<Configure>",
