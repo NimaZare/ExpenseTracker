@@ -127,7 +127,8 @@ class DashboardPage:
 
     def _load_dashboard(self):
         now = datetime.now()
-        
+        self.settings = Utils.load_app_settings()
+
         summary = self.transaction_service.get_dashboard_summary(now.month, now.year)
         total_balance = summary['total_balance']
         monthly_expenses = summary['monthly_expenses']
@@ -189,7 +190,7 @@ class DashboardPage:
         
         autopct_format = lambda pct: f"{pct:.1f}%" if pct > 5 else ''
 
-        wedges, texts, autotexts = ax_pie.pie(
+        wedges, _, _ = ax_pie.pie(
             amounts, 
             autopct=autopct_format, 
             startangle=90,
@@ -211,7 +212,7 @@ class DashboardPage:
         )
 
         ax_legend.axis('off')
-        fig.tight_layout(pad=0) 
+        fig.subplots_adjust(wspace=0.1)
         
         canvas = FigureCanvasTkAgg(fig, master=parent_frame)
         canvas_widget = canvas.get_tk_widget()
@@ -225,22 +226,23 @@ class DashboardPage:
 
         ttk.Label(self.right_frame, text="RECENT TRANSACTIONS", style='H4.TLabel').pack(anchor='w', pady=(0, 10))
 
-        self.tree = ttk.Treeview(self.right_frame, columns=('description', 'amount'), show='headings', height=10)
-        self.tree.heading('description', text='Description')
-        self.tree.heading('amount', text='Amount', anchor='e')
-        self.tree.column('description', width=180, stretch=tk.YES)
-        self.tree.column('amount', width=80, stretch=tk.NO, anchor='e')
+        self.tree = ttk.Treeview(self.right_frame, columns=('category', 'amount'), show='headings', height=10)
+        self.tree.heading('category', text='Category')
+        self.tree.heading('amount', text='Amount')
+        
+        self.tree.column('category', width=130, stretch=tk.YES)
+        self.tree.column('amount', width=130, stretch=tk.YES, anchor='e')
         
         recent_transactions = self.transaction_service.get_recent_transactions(limit=5)
         
         for t in recent_transactions:
-            desc = t.get('description', 'N/A')
+            category = t.get('category', 'N/A')
             amount = t['amount']
             ttype = t['type']
             
             color_tag = 'success' if ttype == 'Income' else 'error'
 
-            self.tree.insert('', 'end', values=(desc, f"{self.settings.get('currency', '$')}{amount:.2f}"), tags=(color_tag,))
+            self.tree.insert('', 'end', values=(category, f"{self.settings.get('currency', '$')}{amount:.2f}"), tags=(color_tag,))
 
         self.tree.tag_configure('error', foreground='#F44336')
         self.tree.tag_configure('success', foreground='#4CAF50')

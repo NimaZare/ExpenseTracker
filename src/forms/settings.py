@@ -212,6 +212,7 @@ class SettingsPage:
             "Personal Finance Manager v1.0\n\n"
             "A simple and efficient application to manage your personal finances.\n"
             "Track expenses, income, and generate insightful reports.\n\n"
+            "Developed by https://nimazare.info/ \n"
             f"© {datetime.now().year} All rights reserved."
         )
         

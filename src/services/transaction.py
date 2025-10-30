@@ -1,5 +1,5 @@
 from services.base import BaseService
-from typing import Dict, List, Generator, Optional
+from typing import Dict, List, Generator, Optional, Union
 from database.engine import get_db_connection
 
 
@@ -34,30 +34,43 @@ class TransactionService(BaseService):
             'monthly_income': metrics_row['monthly_income'] if metrics_row and metrics_row['monthly_income'] is not None else 0.0,
         }
 
-    def get_spending_breakdown(self, month: int, year: int) -> Dict:
-        """Gets expense totals grouped by category for the chart."""
+    def get_spending_breakdown(self, month: int, year: int, as_list: bool = False) -> Union[Dict[str, float], List[Dict[str, float]]]:
+        """Gets expense totals grouped by category for the chart.
+
+        - Default return value: dict mapping category -> total_amount (backwards compatible).
+        - If `as_list=True`, returns a list of {"category_name": <str>, "total_amount": <float>} sorted by amount desc — better for chart libraries.
+        """
         month_filter = f"{year}-{month:02d}-%"
         query = """
         SELECT 
-            c.name AS category_name, 
-            SUM(t.amount) AS total_amount
+            COALESCE(NULLIF(t.category, ''), 'Uncategorized') AS category_name,
+            COALESCE(SUM(t.amount), 0.0) AS total_amount
         FROM transactions t
-        JOIN categories c ON t.category = c.id
-        WHERE t.type = 'Expense' 
+        WHERE t.type = 'Expense'
             AND t.is_active = 1 
             AND t.date LIKE ?
-        GROUP BY c.name
+        GROUP BY t.category
         ORDER BY total_amount DESC;
         """
-        rows = self._execute(query, (month_filter,))
         
-        return {row['category_name']: row['total_amount'] for row in rows}
+        rows = self._execute(query, (month_filter,))
+
+        result_map: Dict[str, float] = {}
+        for row in rows:
+            category = row.get('category_name') if isinstance(row, dict) else row['category_name']
+            amount = float(row.get('total_amount') if isinstance(row, dict) else row['total_amount'])
+            result_map[category] = amount
+
+        if as_list:
+            return [{"category_name": k, "total_amount": v} for k, v in sorted(result_map.items(), key=lambda kv: kv[1], reverse=True)]
+
+        return result_map
 
     def get_recent_transactions(self, limit: int = 5) -> List[Dict]:
         """Fetches the N most recent transactions for the side panel."""
         query = """
         SELECT 
-            t.description, 
+            t.category, 
             t.date, 
             t.amount, 
             t.type
