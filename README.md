@@ -30,23 +30,20 @@ A simple and intuitive application to help you track your income and expenses, m
 - **Language**: python
 
 ## Installation
-   **Clone the Repository**:
-      ```bash
-      git clone https://github.com/NimaZare/ExpenseTracker.git
-      cd ExpenseTracker
-      ```
+1. **Clone the Repository**:
+   ```bash
+   git clone https://github.com/NimaZare/ExpenseTracker.git
+   cd ExpenseTracker
 
-   **To install Dependencies**:
-      ```bash
-      pip install -r requirements.txt
-      ```
+2. **To install Dependencies**:
+    ```bash
+    pip install -r requirements.txt
 
-   **To run on Production**:
-      ```bash
-       python main.py
-      ```
+3. **To run on Production**:
+    ```bash
+    python main.py
 
- ## Usage
+## Usage
 ### Add a Transaction:
 - Navigate to the "Add Transaction" section.
 - Enter details like amount, category (e.g., Food, Salary), and date.
@@ -74,7 +71,11 @@ This project is licensed under the MIT License.
 
 ## Contact
 For questions or feedback, reach out to:
-Email: contact@nimazare.info
-GitHub Issues: Create an Issue and we would respond in a jiffy.
 
+Email: contact@nimazare.info
+ 
+
+GitHub Issues:
+
+Create an Issue and we would respond in a jiffy.
 
